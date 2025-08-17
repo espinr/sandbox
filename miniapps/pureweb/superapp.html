@@ -3,6 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="SuperApp - Modern mobile application with offline capabilities">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SuperApp">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Favicon and Icons -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="images/icon-384.png">
+    
+
     <title>SuperApp Chat</title>
     <style>
         * {
@@ -355,27 +371,27 @@
     
     <div class="tab-content" id="discover-tab">
         <div class="apps-grid">
-            <div class="app-icon" onclick="openMiniApp('My Best Coffee', 'coffee.html')">
+            <div class="app-icon" onclick="openMiniApp('My Best Coffee', 'miniapps/coffee.html')">
                 <div class="app-circle">☕</div>
                 <div class="app-name">My Best Coffee</div>
             </div>
-            <div class="app-icon" onclick="openMiniApp('Tech Shop', 'electronics.html')">
+            <div class="app-icon" onclick="openMiniApp('Tech Shop', 'miniapps/electronics.html')">
                 <div class="app-circle">💻</div>
                 <div class="app-name">Tech Shop</div>
             </div>
-            <div class="app-icon" onclick="openMiniApp('Stock Market', 'stock.html')">
+            <div class="app-icon" onclick="openMiniApp('Stock Market', 'miniapps/stock.html')">
                 <div class="app-circle">📈</div>
                 <div class="app-name">Stock Market</div>
             </div>
-            <div class="app-icon" onclick="openMiniApp('Game Center', 'other.html')">
+            <div class="app-icon" onclick="openMiniApp('Game Center', 'miniapps/other.html')">
                 <div class="app-circle">🎮</div>
                 <div class="app-name">Game Center</div>
             </div>
-            <div class="app-icon" onclick="openMiniApp('Super Mall', 'other.html')">
+            <div class="app-icon" onclick="openMiniApp('Super Mall', 'miniapps/other.html')">
                 <div class="app-circle">🛒</div>
                 <div class="app-name">Super Mall</div>
             </div>
-            <div class="app-icon" onclick="openMiniApp('Ride Hail', 'other.html')">
+            <div class="app-icon" onclick="openMiniApp('Ride Hail', 'miniapps/other.html')">
                 <div class="app-circle">🚕</div>
                 <div class="app-name">Ride Hail</div>
             </div>
@@ -426,6 +442,124 @@
             // Re-enable scrolling of background content
             document.body.style.overflow = 'auto';
         }
-    </script>
+
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(registrationError => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+
+        // PWA Install Prompt
+        let deferredPrompt;
+        const installPrompt = document.getElementById('installPrompt');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installPrompt.classList.add('show');
+        });
+
+        function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    }
+                    deferredPrompt = null;
+                    installPrompt.classList.remove('show');
+                });
+            }
+        }
+
+        function dismissInstall() {
+            installPrompt.classList.remove('show');
+            localStorage.setItem('installPromptDismissed', 'true');
+        }
+
+        // Online/Offline Status
+        function updateOnlineStatus() {
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            
+            if (navigator.onLine) {
+                statusDot.classList.remove('offline');
+                statusText.textContent = 'Online';
+            } else {
+                statusDot.classList.add('offline');
+                statusText.textContent = 'Offline';
+            }
+        }
+
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        updateOnlineStatus();
+
+        // Chat Functionality
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                addMessage(message, true);
+                input.value = '';
+                
+                // Simulate response
+                setTimeout(() => {
+                    const responses = [
+                        "That's interesting!",
+                        "Tell me more about that",
+                        "Great point!",
+                        "I see what you mean",
+                        "Thanks for sharing!"
+                    ];
+                    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                    addMessage(randomResponse, false);
+                }, 1000);
+            }
+        }
+
+        function addMessage(text, isSent) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+            
+            const now = new Date();
+            const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            messageDiv.innerHTML = `
+                <div class="message-bubble">
+                    ${text}
+                    <div class="message-time">${time}</div>
+                </div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // App Navigation
+        function openApp(appName) {
+            alert(`Opening ${appName} app... (This would navigate to the ${appName} module in a real SuperApp)`);
+        }
+
+        // Check if install prompt was previously dismissed
+        if (localStorage.getItem('installPromptDismissed')) {
+            installPrompt.classList.remove('show');
+        }
+    </script>    
 </body>
 </html>
