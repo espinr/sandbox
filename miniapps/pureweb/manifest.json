@@ -2,13 +2,13 @@
   "name": "SuperApp",
   "short_name": "SuperApp",
   "description": "A modern super application with chat",
-  "start_url": "/sandbox/miniapps/pureweb/superapp.html",
+  "start_url": "https://espinr.github.io/sandbox/miniapps/pureweb/superapp.html",
   "display": "fullscreen",
   "orientation": "portrait-primary",
   "theme_color": "#667eea",
   "background_color": "#f7fafc",
   "lang": "en",
-  "scope": "/sandbox/miniapps/pureweb/",
+  "scope": "https://espinr.github.io/sandbox/miniapps/pureweb/",
   "icons": [
     {
       "src": "images/icon-72.png",
